@@ -1,0 +1,33 @@
+services:
+
+  app:
+    build: .
+    container_name: main_app
+    restart: unless-stopped
+#    env_file:
+#      - important/.env
+#    environment:
+#      ENVIRONMENT: ${ENVIRONMENT}
+    ports:
+      - "8000:8000"
+    networks:
+      - smi_network
+
+#  docs:
+#    build: .
+#    container_name: docs
+#    restart: unless-stopped
+##    env_file:
+##      - important/.env
+#    command: [ "faststream", "docs", "serve", "main:app" ]
+#    depends_on:
+#      - app
+#      - db
+#    ports:
+#      - "8080:8080"  # Порт для документации
+#    networks:
+#      - smi_network
+
+networks:
+  smi_network:
+    driver: bridge

@@ -1,0 +1,29 @@
+# Используем официальный образ Python в качестве базового
+FROM python:3.12-slim
+
+# Устанавливаем рабочую директорию внутри контейнера
+WORKDIR /app
+
+# Устанавливаем зависимости системы
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем файл зависимостей и устанавливаем Python-библиотеки
+COPY requirements.txt /app/
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Копируем исходный код проекта
+COPY . /app/
+
+# Указываем переменную окружения для Python
+ENV PYTHONUNBUFFERED=1
+
+# Открываем порт, на котором будет работать приложение
+# 8080 - порт для документации
+EXPOSE 8000
+
+# Команда для запуска приложения через FastStream
+CMD ["faststream", "run", "main:app"]
