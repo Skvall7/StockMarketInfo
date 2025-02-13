@@ -17,9 +17,6 @@ class Settings(BaseSettings):
     title: str = 'Stock market info service'
     description: str = 'Stock market info service - collects information about cryptocurrency exchange rates from exchanges, as well as information about tokens'
 
-    # Параметры Kafka
-    kafka_connections: list[str]
-
     # Параметры логгера
     log_level: str = 'INFO'  # Уровень логирования по умолчанию
     log_file: str = 'var/logs/smi.log'
