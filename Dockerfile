@@ -18,6 +18,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Копируем исходный код проекта
 COPY . /app/
 
+RUN mkdir -p /app/var/logs
+RUN mkdir -p /app/var/logs && chmod -R 777 /app/var/logs
+
+
 # Указываем переменную окружения для Python
 ENV PYTHONUNBUFFERED=1
 
