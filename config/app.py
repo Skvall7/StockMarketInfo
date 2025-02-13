@@ -2,21 +2,9 @@ import logging
 import time
 from functools import wraps
 
-from faststream import FastStream
-from faststream.confluent import KafkaBroker
-
 from config.config import settings
 
 logger = logging.getLogger(settings.title)
-
-broker = KafkaBroker(settings.kafka_connections, log_level=logging.DEBUG, logger=logger)
-
-app = FastStream(
-    broker,
-    title=settings.title,
-    version=settings.version,
-    description=settings.description
-)
 
 
 def log_execution_time(func):

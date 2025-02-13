@@ -87,4 +87,5 @@ class Settings(BaseSettings):
 
 # Инициализация настроек
 settings = Settings()
+all_rates = {}
 settings.configure_logging()

@@ -161,7 +161,7 @@ async def fetch_binance_rates(stock_market: StockMarket) -> List[SMCourse]:
         stock_market,
         data,
         extract_symbol=lambda item: item['symbol'],
-        extract_price=lambda item: float(item['price']) if item['last'] else 0
+        extract_price=lambda item: float(item['price'])
     )
 
 
@@ -175,7 +175,7 @@ async def fetch_htx_rates(stock_market: StockMarket) -> List[SMCourse]:
         stock_market,
         data['data'],
         extract_symbol=lambda item: item['symbol'].upper(),
-        extract_price=lambda item: float(item['close']) if item['last'] else 0
+        extract_price=lambda item: float(item['close'])
     )
 
 
@@ -194,7 +194,7 @@ async def fetch_garantex_rates(stock_market: StockMarket) -> List[SMCourse]:
         stock_market,
         all_data,
         extract_symbol=lambda item: item['symbol'],
-        extract_price=lambda item: item['price'] if item['last'] else 0
+        extract_price=lambda item: item['price']
     )
 
 
@@ -224,7 +224,7 @@ async def fetch_cbr_rates(stock_market: StockMarket) -> List[SMCourse]:
         stock_market,
         pairs_data,
         extract_symbol=lambda item: item['symbol'].upper(),
-        extract_price=lambda item: float(item['value']) if item['last'] else 0
+        extract_price=lambda item: float(item['value'])
     )
 
 
@@ -234,5 +234,5 @@ async def fetch_wmg_rates(stock_market: StockMarket) -> List[SMCourse]:
         stock_market,
         [{'symbol': 'USDTUSD', 'value': 1}],
         extract_symbol=lambda item: item['symbol'].upper(),
-        extract_price=lambda item: float(item['value']) if item['last'] else 0
+        extract_price=lambda item: float(item['value'])
     )
