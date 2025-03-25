@@ -14,7 +14,7 @@ from smi.routes import include_routes
 async def collect_rates(fetch_function, stock_market):
     rates = await fetch_function(stock_market)
     for rate in rates:
-        all_rates[(rate.stock_market, rate.symbol.symbol)] = rate
+        all_rates[(rate.stock_market, rate.symbol)] = rate
 
 async def update_course(stock_market, fetch_course_func):
     """Обновляет курсы бирж с заданным интервалом."""

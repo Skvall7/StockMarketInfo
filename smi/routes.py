@@ -29,5 +29,5 @@ async def get_rates(sm: str = None, symbol: str = None):
     if sm:
         filtered_rates = [rate for rate in filtered_rates if rate.stock_market.lower() == sm.lower()]
     if symbol:
-        filtered_rates = [rate for rate in filtered_rates if rate.symbol.symbol.lower() == symbol.lower()]
+        filtered_rates = [rate for rate in filtered_rates if rate.symbol.lower() == symbol.lower()]
     return filtered_rates

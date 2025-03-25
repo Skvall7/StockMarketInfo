@@ -36,8 +36,9 @@ async def fetch_binance_symbols(stock_market: StockMarket) -> List[Symbol]:
         for item in data['symbols']
         if item['status'] == 'TRADING'  # Проверка торгуется ли пара
     ]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
@@ -48,8 +49,9 @@ async def fetch_garantex_symbols(stock_market: StockMarket) -> List[Symbol]:
         logger.warning(f"Error data: {data}")
         return []
     symbols = [Symbol(asset_left=item['ask_unit'], asset_right=item['bid_unit']) for item in data]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
@@ -59,8 +61,9 @@ async def fetch_payeer_symbols(stock_market: StockMarket) -> List[Symbol]:
     if not data or not data['pairs']:
         return []
     symbols = [Symbol(asset_left=pair.split('_')[0], asset_right=pair.split('_')[1]) for pair in data["pairs"]]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
@@ -75,8 +78,9 @@ async def fetch_htx_symbols(stock_market: StockMarket) -> List[Symbol]:
         for item in data["data"]
         if item['state'] == 'online'    # Проверка торгуется ли пара
     ]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
@@ -87,16 +91,18 @@ async def fetch_cbr_symbols(stock_market: StockMarket) -> List[Symbol]:
         logger.warning(f"Error data: {data}")
         return []
     symbols = [Symbol(asset_left=code, asset_right='RUB')for code, currency_data in data["Valute"].items()]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
 @log_execution_time
 async def fetch_wmg_symbols(stock_market: StockMarket) -> List[Symbol]:
     symbols = [Symbol(asset_left='USDT', asset_right='USD')]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
-    stock_market.symbols = symbols
+    stock_market.symbols = symbols + rev_symbols
     return symbols
 
 
@@ -118,7 +124,7 @@ async def process_rate(symbol_obj: Symbol, stock_market: str, price: float, time
     """Создает основной и обратный курсы для заданного символа."""
     rates = []
     rate = SMCourse(
-        symbol=symbol_obj,
+        symbol=symbol_obj.symbol,
         stock_market=stock_market,
         course=price,
         calculated=price < 1,
@@ -126,7 +132,7 @@ async def process_rate(symbol_obj: Symbol, stock_market: str, price: float, time
     )
     rates.append(rate)
     reverse_rate = SMCourse(
-        symbol=Symbol(asset_left=symbol_obj.asset_right.asset, asset_right=symbol_obj.asset_left.asset),
+        symbol=Symbol(asset_left=symbol_obj.asset_right.asset, asset_right=symbol_obj.asset_left.asset).symbol,
         stock_market=stock_market,
         course=1 / price,
         calculated=(1 / price) <= 1,

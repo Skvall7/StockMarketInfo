@@ -39,7 +39,7 @@ class StockMarket(BaseModel):
 
 class SMCourse(BaseModel):
     stock_market: str
-    symbol: Symbol
+    symbol: str # Symbol
     course: float
     calculated: bool
     updated: datetime
