@@ -27,7 +27,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Открываем порт, на котором будет работать приложение
 # 8080 - порт для документации
-EXPOSE 8000
+EXPOSE 9000
 
 # Команда для запуска приложения через FastStream
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000"]
