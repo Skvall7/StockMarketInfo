@@ -5,7 +5,7 @@ services:
     container_name: smi_parser
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "9000:9000"
     networks:
       - smi_network
 
