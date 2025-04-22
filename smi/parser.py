@@ -25,63 +25,63 @@ async def fetch_data(url: str) -> Any:
         return {}
 
 
-@log_execution_time
-async def fetch_binance_symbols(stock_market: StockMarket) -> List[Symbol]:
-    data = await fetch_data(stock_market.info_url.unicode_string())
-    if not data or not data['symbols']:
-        logger.warning(f"Error data: {data}")
-        return []
-    symbols = [
-        Symbol(asset_left=item['baseAsset'], asset_right=item['quoteAsset'])
-        for item in data['symbols']
-        if item['status'] == 'TRADING'  # Проверка торгуется ли пара
-    ]
-    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
-    stock_market.symbols = []
-    stock_market.symbols = symbols + rev_symbols
-    return symbols
-
-
-@log_execution_time
-async def fetch_garantex_symbols(stock_market: StockMarket) -> List[Symbol]:
-    data = await fetch_data(stock_market.info_url.unicode_string())
-    if not data or not data[0]['ask_unit']:
-        logger.warning(f"Error data: {data}")
-        return []
-    symbols = [Symbol(asset_left=item['ask_unit'], asset_right=item['bid_unit']) for item in data]
-    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
-    stock_market.symbols = []
-    stock_market.symbols = symbols + rev_symbols
-    return symbols
-
-
-@log_execution_time
-async def fetch_payeer_symbols(stock_market: StockMarket) -> List[Symbol]:
-    data = await fetch_data(stock_market.info_url.unicode_string())
-    if not data or not data['pairs']:
-        return []
-    symbols = [Symbol(asset_left=pair.split('_')[0], asset_right=pair.split('_')[1]) for pair in data["pairs"]]
-    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
-    stock_market.symbols = []
-    stock_market.symbols = symbols + rev_symbols
-    return symbols
-
-
-@log_execution_time
-async def fetch_htx_symbols(stock_market: StockMarket) -> List[Symbol]:
-    data = await fetch_data(stock_market.info_url.unicode_string())
-    if not data or not data['data']:
-        logger.warning(f"Error data: {data}")
-        return []
-    symbols = [
-        Symbol(asset_left=item["bc"], asset_right=item["qc"])
-        for item in data["data"]
-        if item['state'] == 'online'    # Проверка торгуется ли пара
-    ]
-    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
-    stock_market.symbols = []
-    stock_market.symbols = symbols + rev_symbols
-    return symbols
+# @log_execution_time
+# async def fetch_binance_symbols(stock_market: StockMarket) -> List[Symbol]:
+#     data = await fetch_data(stock_market.info_url.unicode_string())
+#     if not data or not data['symbols']:
+#         logger.warning(f"Error data: {data}")
+#         return []
+#     symbols = [
+#         Symbol(asset_left=item['baseAsset'], asset_right=item['quoteAsset'])
+#         for item in data['symbols']
+#         if item['status'] == 'TRADING'  # Проверка торгуется ли пара
+#     ]
+#     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+#     stock_market.symbols = []
+#     stock_market.symbols = symbols + rev_symbols
+#     return symbols
+#
+#
+# @log_execution_time
+# async def fetch_garantex_symbols(stock_market: StockMarket) -> List[Symbol]:
+#     data = await fetch_data(stock_market.info_url.unicode_string())
+#     if not data or not data[0]['ask_unit']:
+#         logger.warning(f"Error data: {data}")
+#         return []
+#     symbols = [Symbol(asset_left=item['ask_unit'], asset_right=item['bid_unit']) for item in data]
+#     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+#     stock_market.symbols = []
+#     stock_market.symbols = symbols + rev_symbols
+#     return symbols
+#
+#
+# @log_execution_time
+# async def fetch_payeer_symbols(stock_market: StockMarket) -> List[Symbol]:
+#     data = await fetch_data(stock_market.info_url.unicode_string())
+#     if not data or not data['pairs']:
+#         return []
+#     symbols = [Symbol(asset_left=pair.split('_')[0], asset_right=pair.split('_')[1]) for pair in data["pairs"]]
+#     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+#     stock_market.symbols = []
+#     stock_market.symbols = symbols + rev_symbols
+#     return symbols
+#
+#
+# @log_execution_time
+# async def fetch_htx_symbols(stock_market: StockMarket) -> List[Symbol]:
+#     data = await fetch_data(stock_market.info_url.unicode_string())
+#     if not data or not data['data']:
+#         logger.warning(f"Error data: {data}")
+#         return []
+#     symbols = [
+#         Symbol(asset_left=item["bc"], asset_right=item["qc"])
+#         for item in data["data"]
+#         if item['state'] == 'online'    # Проверка торгуется ли пара
+#     ]
+#     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+#     stock_market.symbols = []
+#     stock_market.symbols = symbols + rev_symbols
+#     return symbols
 
 
 @log_execution_time
@@ -97,9 +97,41 @@ async def fetch_cbr_symbols(stock_market: StockMarket) -> List[Symbol]:
     return symbols
 
 
+# @log_execution_time
+# async def fetch_wmg_symbols(stock_market: StockMarket) -> List[Symbol]:
+#     symbols = [Symbol(asset_left='USDT', asset_right='USD')]
+#     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+#     stock_market.symbols = []
+#     stock_market.symbols = symbols + rev_symbols
+#     return symbols
+
 @log_execution_time
-async def fetch_wmg_symbols(stock_market: StockMarket) -> List[Symbol]:
-    symbols = [Symbol(asset_left='USDT', asset_right='USD')]
+async def fetch_bybit_symbols(stock_market: StockMarket) -> List[Symbol]:
+    data = await fetch_data(stock_market.info_url.unicode_string())
+    if not data or not data['result']:
+        logger.warning(f"Error data: {data}")
+        return []
+    symbols = [
+        Symbol(asset_left=item["baseCoin"], asset_right=item["quoteCoin"])
+        for item in data["result"]['list']
+        if item['status'] == 'Trading'    # Проверка торгуется ли пара
+    ]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+    stock_market.symbols = []
+    stock_market.symbols = symbols + rev_symbols
+    return symbols
+
+@log_execution_time
+async def fetch_rapira_symbols(stock_market: StockMarket) -> List[Symbol]:
+    data = await fetch_data(stock_market.info_url.unicode_string())
+    if not data:
+        logger.warning(f"Error data: {data}")
+        return []
+    symbols = [
+        Symbol(asset_left=item["coinSymbol"], asset_right=item["baseSymbol"])
+        for item in data
+        if item['exchangeable'] == True  # Проверка торгуется ли пара
+    ]
     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
     stock_market.symbols = symbols + rev_symbols
@@ -108,12 +140,14 @@ async def fetch_wmg_symbols(stock_market: StockMarket) -> List[Symbol]:
 
 async def fetch_all_symbols() -> List[Symbol]:
     fetch_tasks = [
-        fetch_binance_symbols(settings.binance),
-        fetch_garantex_symbols(settings.garantex),
-        fetch_payeer_symbols(settings.payeer),
-        fetch_htx_symbols(settings.htx),
+        # fetch_binance_symbols(settings.binance),
+        # fetch_garantex_symbols(settings.garantex),
+        # fetch_payeer_symbols(settings.payeer),
+        # fetch_htx_symbols(settings.htx),
         fetch_cbr_symbols(settings.cbr),
-        fetch_wmg_symbols(settings.wmg)
+        # fetch_wmg_symbols(settings.wmg),
+        fetch_bybit_symbols(settings.bybit),
+        fetch_rapira_symbols(settings.rapira),
     ]
     results = await asyncio.gather(*fetch_tasks)
     symbol_set = {symbol.symbol: symbol for symbol_list in results for symbol in symbol_list}
@@ -184,6 +218,32 @@ async def fetch_htx_rates(stock_market: StockMarket) -> List[SMCourse]:
         extract_price=lambda item: float(item['close'])
     )
 
+@log_execution_time
+async def fetch_bybit_rates(stock_market: StockMarket) -> List[SMCourse]:
+    data = await fetch_data(stock_market.rates_url.unicode_string())
+    if not data or not data['result']:
+        logger.warning(f"Error data: {data}")
+        return []
+    return await process_market_data(
+        stock_market,
+        data['result']['list'],
+        extract_symbol=lambda item: item['symbol'].upper(),
+        extract_price=lambda item: float(item['lastPrice'])
+    )
+
+@log_execution_time
+async def fetch_rapira_rates(stock_market: StockMarket) -> List[SMCourse]:
+    data = await fetch_data(stock_market.rates_url.unicode_string())
+    if not data or not data['data']:
+        logger.warning(f"Error data: {data}")
+        return []
+    pairs_data = [{'symbol': value['symbol'].replace('/', ''), 'close': value['close']} for value in data['data']]
+    return await process_market_data(
+        stock_market,
+        pairs_data,
+        extract_symbol=lambda item: item['symbol'].upper(),
+        extract_price=lambda item: float(item['close'])
+    )
 
 @log_execution_time
 async def fetch_garantex_rates(stock_market: StockMarket) -> List[SMCourse]:

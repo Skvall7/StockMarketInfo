@@ -33,37 +33,37 @@ class Settings(BaseSettings):
         logging.getLogger(self.title).setLevel(self.log_level)
 
     # Параметры бирж
-    binance: StockMarket = StockMarket(
-        name='Binance',
-        info_url='https://api.binance.com/api/v3/exchangeInfo',
-        rates_url='https://api.binance.com/api/v3/ticker/price',
-        requests_sleep=60,
-        requests_per_day=86400,
-    )
-
-    garantex: StockMarket = StockMarket(
-        name='Garantex',
-        info_url='https://garantex.org/api/v2/markets',
-        rates_url='https://garantex.org/api/v2/trades',
-        requests_sleep=60,
-        requests_per_day=1728,
-    )
-
-    payeer: StockMarket = StockMarket(
-        name='Payeer',
-        info_url='https://payeer.com/api/trade/info',
-        rates_url='https://payeer.com/api/trade/ticker',
-        requests_sleep=60,
-        requests_per_day=86400,
-    )
-
-    htx: StockMarket = StockMarket(
-        name='HTX',
-        info_url='https://api.huobi.pro/v1/settings/common/symbols',
-        rates_url='https://api.huobi.pro/market/tickers',
-        requests_sleep=60,
-        requests_per_day=86400,
-    )
+    # binance: StockMarket = StockMarket(
+    #     name='Binance',
+    #     info_url='https://api.binance.com/api/v3/exchangeInfo',
+    #     rates_url='https://api.binance.com/api/v3/ticker/price',
+    #     requests_sleep=60,
+    #     requests_per_day=86400,
+    # )
+    #
+    # garantex: StockMarket = StockMarket(
+    #     name='Garantex',
+    #     info_url='https://garantex.org/api/v2/markets',
+    #     rates_url='https://garantex.org/api/v2/trades',
+    #     requests_sleep=60,
+    #     requests_per_day=1728,
+    # )
+    #
+    # payeer: StockMarket = StockMarket(
+    #     name='Payeer',
+    #     info_url='https://payeer.com/api/trade/info',
+    #     rates_url='https://payeer.com/api/trade/ticker',
+    #     requests_sleep=60,
+    #     requests_per_day=86400,
+    # )
+    #
+    # htx: StockMarket = StockMarket(
+    #     name='HTX',
+    #     info_url='https://api.huobi.pro/v1/settings/common/symbols',
+    #     rates_url='https://api.huobi.pro/market/tickers',
+    #     requests_sleep=60,
+    #     requests_per_day=86400,
+    # )
 
     cbr: StockMarket = StockMarket(
         name='CBR',
@@ -73,12 +73,29 @@ class Settings(BaseSettings):
         requests_per_day=86400,
     )
 
-    wmg: StockMarket = StockMarket(
-        name='WMGlobus',
-        info_url='https://wmglobus.com/',
-        rates_url='https://wmglobus.com/',
-        requests_sleep=60,
+    # wmg: StockMarket = StockMarket(
+    #     name='WMGlobus',
+    #     info_url='https://wmglobus.com/',
+    #     rates_url='https://wmglobus.com/',
+    #     requests_sleep=60,
+    #     requests_per_day=86400,
+    # )
+
+    bybit: StockMarket = StockMarket(
+        name='Bybit',
+        info_url='https://api.bybit.com/v5/market/instruments-info?category=spot',
+        rates_url='https://api.bybit.com/v5/market/tickers?category=spot',
+        requests_sleep=3,
         requests_per_day=86400,
+    )
+
+    # https://rapira.readme.io/reference/intro
+    rapira: StockMarket = StockMarket(
+        name='Rapira',
+        info_url='https://api.rapira.net/open/market/pairs',
+        rates_url='https://api.rapira.net/open/market/rates',
+        requests_sleep=3,
+        requests_per_day=144000,
     )
 
 

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from config.app import log_execution_time
 from config.config import settings, all_rates
 from smi.parser import fetch_all_symbols, fetch_binance_rates, fetch_garantex_rates, fetch_payeer_rates, \
-    fetch_htx_rates, fetch_cbr_rates, fetch_wmg_rates
+    fetch_htx_rates, fetch_cbr_rates, fetch_wmg_rates, fetch_bybit_rates, fetch_rapira_rates
 from smi.routes import include_routes
 
 
@@ -34,12 +34,14 @@ async def update_info():
 async def lifespan(app: FastAPI):
     tasks = [
         asyncio.create_task(update_info()),
-        asyncio.create_task(update_course(settings.binance, fetch_binance_rates)),
-        asyncio.create_task(update_course(settings.garantex, fetch_garantex_rates)),
-        asyncio.create_task(update_course(settings.payeer, fetch_payeer_rates)),
-        asyncio.create_task(update_course(settings.htx, fetch_htx_rates)),
+        # asyncio.create_task(update_course(settings.binance, fetch_binance_rates)),
+        # asyncio.create_task(update_course(settings.garantex, fetch_garantex_rates)),
+        # asyncio.create_task(update_course(settings.payeer, fetch_payeer_rates)),
+        # asyncio.create_task(update_course(settings.htx, fetch_htx_rates)),
         asyncio.create_task(update_course(settings.cbr, fetch_cbr_rates)),
-        asyncio.create_task(update_course(settings.wmg, fetch_wmg_rates)),
+        # asyncio.create_task(update_course(settings.wmg, fetch_wmg_rates)),
+        asyncio.create_task(update_course(settings.bybit, fetch_bybit_rates)),
+        asyncio.create_task(update_course(settings.rapira, fetch_rapira_rates)),
     ]
     yield  # Запуск приложения
 
