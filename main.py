@@ -34,10 +34,10 @@ async def update_info():
 async def lifespan(app: FastAPI):
     tasks = [
         asyncio.create_task(update_info()),
-        # asyncio.create_task(update_course(settings.binance, fetch_binance_rates)),
+        asyncio.create_task(update_course(settings.binance, fetch_binance_rates)),
         # asyncio.create_task(update_course(settings.garantex, fetch_garantex_rates)),
         # asyncio.create_task(update_course(settings.payeer, fetch_payeer_rates)),
-        # asyncio.create_task(update_course(settings.htx, fetch_htx_rates)),
+        asyncio.create_task(update_course(settings.htx, fetch_htx_rates)),
         asyncio.create_task(update_course(settings.cbr, fetch_cbr_rates)),
         # asyncio.create_task(update_course(settings.wmg, fetch_wmg_rates)),
         asyncio.create_task(update_course(settings.bybit, fetch_bybit_rates)),

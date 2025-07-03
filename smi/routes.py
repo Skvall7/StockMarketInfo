@@ -12,10 +12,10 @@ info_router = APIRouter()
 @info_router.get("", response_model=list[StockMarket])
 def get_markets():
     return [
-        # settings.binance,
+        settings.binance,
         # settings.garantex,
         # settings.payeer,
-        # settings.htx,
+        settings.htx,
         settings.cbr,
         # settings.wmg,
         settings.bybit,

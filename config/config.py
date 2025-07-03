@@ -33,13 +33,13 @@ class Settings(BaseSettings):
         logging.getLogger(self.title).setLevel(self.log_level)
 
     # Параметры бирж
-    # binance: StockMarket = StockMarket(
-    #     name='Binance',
-    #     info_url='https://api.binance.com/api/v3/exchangeInfo',
-    #     rates_url='https://api.binance.com/api/v3/ticker/price',
-    #     requests_sleep=60,
-    #     requests_per_day=86400,
-    # )
+    binance: StockMarket = StockMarket(
+        name='Binance',
+        info_url='https://api.binance.com/api/v3/exchangeInfo',
+        rates_url='https://api.binance.com/api/v3/ticker/price',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
     #
     # garantex: StockMarket = StockMarket(
     #     name='Garantex',
@@ -57,13 +57,13 @@ class Settings(BaseSettings):
     #     requests_per_day=86400,
     # )
     #
-    # htx: StockMarket = StockMarket(
-    #     name='HTX',
-    #     info_url='https://api.huobi.pro/v1/settings/common/symbols',
-    #     rates_url='https://api.huobi.pro/market/tickers',
-    #     requests_sleep=60,
-    #     requests_per_day=86400,
-    # )
+    htx: StockMarket = StockMarket(
+        name='HTX',
+        info_url='https://api.huobi.pro/v1/settings/common/symbols',
+        rates_url='https://api.huobi.pro/market/tickers',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
 
     cbr: StockMarket = StockMarket(
         name='CBR',
