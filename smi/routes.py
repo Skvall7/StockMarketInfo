@@ -19,6 +19,7 @@ def get_markets():
         settings.cbr,
         # settings.wmg,
         settings.bybit,
+        settings.bybit_p2p,
         settings.rapira,
     ]
 

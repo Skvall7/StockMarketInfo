@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from config.app import log_execution_time
 from config.config import settings, all_rates
 from smi.parser import fetch_all_symbols, fetch_binance_rates, fetch_garantex_rates, fetch_payeer_rates, \
-    fetch_htx_rates, fetch_cbr_rates, fetch_wmg_rates, fetch_bybit_rates, fetch_rapira_rates
+    fetch_htx_rates, fetch_cbr_rates, fetch_wmg_rates, fetch_bybit_rates, fetch_rapira_rates, fetch_bybit_p2p_rates
 from smi.routes import include_routes
 
 
@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(update_course(settings.cbr, fetch_cbr_rates)),
         # asyncio.create_task(update_course(settings.wmg, fetch_wmg_rates)),
         asyncio.create_task(update_course(settings.bybit, fetch_bybit_rates)),
+        asyncio.create_task(update_course(settings.bybit_p2p, fetch_bybit_p2p_rates)),
         asyncio.create_task(update_course(settings.rapira, fetch_rapira_rates)),
     ]
     yield  # Запуск приложения

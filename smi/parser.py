@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Any, Dict, Callable
 
 from config.app import log_execution_time
+from smi.p2p_parser import compute_pair_avg
 from smi.schemas import Symbol, StockMarket, SMCourse
 from config.config import settings
 
@@ -23,7 +24,6 @@ async def fetch_data(url: str) -> Any:
         except Exception as e:
             logger.warning(f"An error occurred: {e}")
         return {}
-
 
 @log_execution_time
 async def fetch_binance_symbols(stock_market: StockMarket) -> List[Symbol]:
@@ -122,6 +122,17 @@ async def fetch_bybit_symbols(stock_market: StockMarket) -> List[Symbol]:
     return symbols
 
 @log_execution_time
+async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> List[Symbol]:
+    # Нужно найти решение как получать список токенов и фиаты
+    tokens = ["USDT", "USDC"]
+    fiats = ["RUB", "KZT", "AZN", "TJS"]
+    symbols = [Symbol(asset_left=t, asset_right=f) for t in tokens for f in fiats]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+    stock_market.symbols = []
+    stock_market.symbols = symbols + rev_symbols
+    return symbols
+
+@log_execution_time
 async def fetch_rapira_symbols(stock_market: StockMarket) -> List[Symbol]:
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data:
@@ -147,6 +158,7 @@ async def fetch_all_symbols() -> List[Symbol]:
         fetch_cbr_symbols(settings.cbr),
         # fetch_wmg_symbols(settings.wmg),
         fetch_bybit_symbols(settings.bybit),
+        fetch_bybit_p2p_symbols(settings.bybit_p2p),
         fetch_rapira_symbols(settings.rapira),
     ]
     results = await asyncio.gather(*fetch_tasks)
@@ -154,29 +166,29 @@ async def fetch_all_symbols() -> List[Symbol]:
     return list(symbol_set.values())
 
 
-async def process_rate(symbol_obj: Symbol, stock_market: str, price: float, timestamp: datetime) -> List[SMCourse]:
+async def process_rate(symbol_obj: Symbol, stock_market: str, price: float|tuple[float, float], timestamp: datetime, p2p=False) -> List[SMCourse]:
     """Создает основной и обратный курсы для заданного символа."""
     rates = []
     rate = SMCourse(
         symbol=symbol_obj.symbol,
         stock_market=stock_market,
-        course=price,
-        calculated=price < 1,
+        course=price if not p2p else price[0],
+        calculated=price < 1 if not p2p else price[0] < 1,
         updated=timestamp
     )
     rates.append(rate)
     reverse_rate = SMCourse(
         symbol=Symbol(asset_left=symbol_obj.asset_right.asset, asset_right=symbol_obj.asset_left.asset).symbol,
         stock_market=stock_market,
-        course=1 / price,
-        calculated=(1 / price) <= 1,
+        course=1 / price if not p2p else 1 / price[1],
+        calculated=(1 / price) <= 1 if not p2p else (1 / price[1]) <= 1,
         updated=timestamp
     )
     rates.append(reverse_rate)
     return rates
 
 
-async def process_market_data(stock_market: StockMarket, data: List[Dict], extract_symbol: Callable[[Dict], str], extract_price: Callable[[Dict], float]) -> List[SMCourse]:
+async def process_market_data(stock_market: StockMarket, data: List[Dict], extract_symbol: Callable[[Dict], str], extract_price: Callable[[Dict], float|tuple[float, float]], p2p=False) -> List[SMCourse]:
     """Универсальная функция для обработки данных рынка."""
     rates = []
     timestamp = datetime.now()
@@ -185,9 +197,14 @@ async def process_market_data(stock_market: StockMarket, data: List[Dict], extra
         symbol_obj = next((symbol for symbol in stock_market.symbols if symbol.symbol == symbol_str), None)
         if symbol_obj:
             price = extract_price(item)
-            if not price:
-                continue
-            rates += await process_rate(symbol_obj=symbol_obj, stock_market=stock_market.name, price=price, timestamp=timestamp)
+            if p2p:
+                if not price[0] or not price[1]:
+                    continue
+                rates += await process_rate(symbol_obj=symbol_obj, stock_market=stock_market.name, price=price, timestamp=timestamp, p2p=p2p)
+            else:
+                if not price:
+                    continue
+                rates += await process_rate(symbol_obj=symbol_obj, stock_market=stock_market.name, price=price, timestamp=timestamp)
     return rates
 
 
@@ -301,4 +318,18 @@ async def fetch_wmg_rates(stock_market: StockMarket) -> List[SMCourse]:
         [{'symbol': 'USDTUSD', 'value': 1}],
         extract_symbol=lambda item: item['symbol'].upper(),
         extract_price=lambda item: float(item['value'])
+    )
+
+
+@log_execution_time
+async def fetch_bybit_p2p_rates(market: StockMarket) -> list[SMCourse]:
+    async with httpx.AsyncClient() as client:
+        coros = [compute_pair_avg(client, market, symbol) for symbol in market.symbols]
+        results = await asyncio.gather(*coros, return_exceptions=True)
+    return await process_market_data(
+        market,
+        results,
+        extract_symbol=lambda item: item['symbol'],
+        extract_price=lambda item: item['price'],
+        p2p=True
     )

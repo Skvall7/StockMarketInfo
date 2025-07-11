@@ -85,8 +85,16 @@ class Settings(BaseSettings):
         name='Bybit',
         info_url='https://api.bybit.com/v5/market/instruments-info?category=spot',
         rates_url='https://api.bybit.com/v5/market/tickers?category=spot',
-        requests_sleep=3,
+        requests_sleep=60,
         requests_per_day=86400,
+    )
+
+    bybit_p2p: StockMarket = StockMarket(
+        name='Bybit_p2p',
+        info_url='https://api2.bybit.com/fiat/otc/item/online',
+        rates_url='https://api2.bybit.com/fiat/otc/item/online',
+        requests_sleep=60,
+        requests_per_day=1440,
     )
 
     # https://rapira.readme.io/reference/intro
@@ -94,7 +102,7 @@ class Settings(BaseSettings):
         name='Rapira',
         info_url='https://api.rapira.net/open/market/pairs',
         rates_url='https://api.rapira.net/open/market/rates',
-        requests_sleep=3,
+        requests_sleep=60,
         requests_per_day=144000,
     )
 
