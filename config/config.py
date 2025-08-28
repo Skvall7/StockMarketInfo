@@ -40,23 +40,23 @@ class Settings(BaseSettings):
         requests_sleep=60,
         requests_per_day=86400,
     )
-    #
-    # garantex: StockMarket = StockMarket(
-    #     name='Garantex',
-    #     info_url='https://garantex.org/api/v2/markets',
-    #     rates_url='https://garantex.org/api/v2/trades',
-    #     requests_sleep=60,
-    #     requests_per_day=1728,
-    # )
-    #
-    # payeer: StockMarket = StockMarket(
-    #     name='Payeer',
-    #     info_url='https://payeer.com/api/trade/info',
-    #     rates_url='https://payeer.com/api/trade/ticker',
-    #     requests_sleep=60,
-    #     requests_per_day=86400,
-    # )
-    #
+
+    garantex: StockMarket = StockMarket(
+        name='Garantex',
+        info_url='https://garantex.org/api/v2/markets',
+        rates_url='https://garantex.org/api/v2/trades',
+        requests_sleep=60,
+        requests_per_day=1728,
+    )
+
+    payeer: StockMarket = StockMarket(
+        name='Payeer',
+        info_url='https://payeer.com/api/trade/info',
+        rates_url='https://payeer.com/api/trade/ticker',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
+
     htx: StockMarket = StockMarket(
         name='HTX',
         info_url='https://api.huobi.pro/v1/settings/common/symbols',
@@ -73,13 +73,13 @@ class Settings(BaseSettings):
         requests_per_day=86400,
     )
 
-    # wmg: StockMarket = StockMarket(
-    #     name='WMGlobus',
-    #     info_url='https://wmglobus.com/',
-    #     rates_url='https://wmglobus.com/',
-    #     requests_sleep=60,
-    #     requests_per_day=86400,
-    # )
+    wmg: StockMarket = StockMarket(
+        name='WMGlobus',
+        info_url='https://wmglobus.com/',
+        rates_url='https://wmglobus.com/',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
 
     bybit: StockMarket = StockMarket(
         name='Bybit',
@@ -104,6 +104,14 @@ class Settings(BaseSettings):
         rates_url='https://api.rapira.net/open/market/rates',
         requests_sleep=60,
         requests_per_day=144000,
+    )
+
+    binance_p2p: StockMarket = StockMarket(
+        name='Binance_p2p',
+        info_url='https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',
+        rates_url='https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',
+        requests_sleep=60,
+        requests_per_day=1440,
     )
 
 

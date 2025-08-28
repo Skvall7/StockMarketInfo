@@ -13,11 +13,11 @@ info_router = APIRouter()
 def get_markets():
     return [
         settings.binance,
-        # settings.garantex,
-        # settings.payeer,
+        settings.garantex,
+        settings.payeer,
         settings.htx,
         settings.cbr,
-        # settings.wmg,
+        settings.wmg,
         settings.bybit,
         settings.bybit_p2p,
         settings.rapira,
