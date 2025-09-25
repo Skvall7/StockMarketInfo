@@ -12,7 +12,7 @@ logger = logging.getLogger(settings.title)
 
 # Параметры окон усреднения: можно добавить индивидуальные
 WINDOW_CONFIG = {
-    "USDTRUB": {'BUY': {'start': 3, 'end': 5, 'min_amount': 100, 'verify': True}, 'SELL': {'start': 3, 'end': 5, 'min_amount': 100, 'verify': True}},
+    "USDTRUB": {'BUY': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True}, 'SELL': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True}},
     "USDTAZN": {'BUY': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True}, 'SELL': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True}},
 }
 DEFAULT_WINDOW = {'start': 2, 'end': 4, 'min_amount': 0, 'verify': True}
@@ -35,7 +35,7 @@ async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
     stock_market.symbols = symbols + rev_symbols
     return symbols
 
-async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 5, min_amount: Optional[float] = .0,
+async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 50, min_amount: Optional[float] = .0,
                     merchant_only: bool = True,) -> list[float]:
     # TODO требуется до адоптировать p2p, в частности запросы
     prices: list[float] = []
@@ -54,14 +54,14 @@ async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 
             continue
     return sorted(prices) if side == "1" else sorted(prices, reverse=True)
 
-async def compute_pair_avg(market: StockMarket, symbol: Symbol ) -> dict[str, tuple[Optional[float], Optional[float]]]:
+async def compute_pair_avg(market: StockMarket, symbol: Symbol ) -> dict[str, tuple[float, float]]:
     window = WINDOW_CONFIG.get(symbol.symbol, {'BUY': DEFAULT_WINDOW, 'SELL': DEFAULT_WINDOW})
-    buy_list, sell_list = await asyncio.gather(fetch_ads(market, symbol, "1", window['BUY']['end'], window['BUY']['min_amount'], window['BUY']['verify']),
-                                               fetch_ads(market, symbol, "0", window['SELL']['end'], window['SELL']['min_amount'], window['SELL']['verify']))
+    buy_list, sell_list = await asyncio.gather(fetch_ads(market, symbol, "1", min_amount=window['BUY']['min_amount'], merchant_only=window['BUY']['verify']),
+                                               fetch_ads(market, symbol, "0", min_amount=window['SELL']['min_amount'], merchant_only=window['SELL']['verify']))
 
     def avg(prices: list[float], start: int, end: int) -> float:
         sub = prices[start-1:end]
-        return sum(sub) / len(sub) if sub else 0.0
+        return sum(sub) / len(sub) if sub else .0
     return {"symbol": symbol.symbol, "price": (avg(buy_list, window['BUY']['start'], window['BUY']['end']), avg(sell_list, window['SELL']['start'], window['SELL']['end']))}
 
 
