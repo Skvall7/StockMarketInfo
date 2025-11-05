@@ -27,8 +27,8 @@ HEADERS = {
 @log_execution_time
 async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
     # Нужно найти решение как получать список токенов и фиаты
-    tokens = ["USDT", "USDC"]
-    fiats = ["RUB", "KZT", "AZN", "TJS"]
+    tokens = ["USDT"]   # , "USDC"
+    fiats = ["RUB", "KZT", "AZN", "TJS", "ARS"]
     symbols = [Symbol(asset_left=t, asset_right=f) for t in tokens for f in fiats]
     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []

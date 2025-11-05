@@ -54,7 +54,7 @@ async def fetch_all_symbols() -> list[Symbol]:
         # fetch_bybit_symbols(settings.bybit),
         fetch_bybit_p2p_symbols(settings.bybit_p2p),
         fetch_rapira_symbols(settings.rapira),
-        # fetch_binance_p2p_symbols(settings.binance_p2p),
+        fetch_binance_p2p_symbols(settings.binance_p2p),
     ]
     results = await asyncio.gather(*fetch_tasks)
     symbol_set = {symbol.symbol: symbol for symbol_list in results for symbol in symbol_list}
@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
         # asyncio.create_task(update_course(settings.bybit, fetch_bybit_rates)),
         asyncio.create_task(update_course(settings.bybit_p2p, fetch_bybit_p2p_rates)),
         asyncio.create_task(update_course(settings.rapira, fetch_rapira_rates)),
-        # asyncio.create_task(update_course(settings.binance_p2p, fetch_binance_p2p_rates)),
+        asyncio.create_task(update_course(settings.binance_p2p, fetch_binance_p2p_rates)),
     ]
     yield  # Запуск приложения
 

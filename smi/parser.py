@@ -33,16 +33,16 @@ async def process_rate(symbol_obj: Symbol, stock_market: str, price: float|tuple
     rate = SMCourse(
         symbol=symbol_obj.symbol,
         stock_market=stock_market,
-        course=price if not p2p else price[0],
-        calculated=price < 1 if not p2p else price[0] < 1,
+        course=price if not p2p else price[1],
+        calculated=price < 1 if not p2p else price[1] < 1,
         updated=timestamp
     )
     rates.append(rate)
     reverse_rate = SMCourse(
         symbol=Symbol(asset_left=symbol_obj.asset_right.asset, asset_right=symbol_obj.asset_left.asset).symbol,
         stock_market=stock_market,
-        course=1 / price if not p2p else 1 / price[1],
-        calculated=(1 / price) <= 1 if not p2p else (1 / price[1]) <= 1,
+        course=1 / price if not p2p else 1 / price[0],
+        calculated=(1 / price) <= 1 if not p2p else (1 / price[0]) <= 1,
         updated=timestamp
     )
     rates.append(reverse_rate)

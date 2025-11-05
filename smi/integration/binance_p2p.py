@@ -10,73 +10,59 @@ from smi.schemas import StockMarket, SMCourse, Symbol
 
 logger = logging.getLogger(settings.title)
 
+WINDOW_CONFIG = {
+    "USDTAZN": {'BUY': {'start': 1, 'end': 10, 'min_amount': 0, 'verify': True, 'bank': ['Kapitalbank']},
+                'SELL': {'start': 1, 'end': 10, 'min_amount': 0, 'verify': True, 'bank': ['Kapitalbank']}},
+}
+DEFAULT_WINDOW = {'start': 1, 'end': 5, 'min_amount': 0, 'verify': True, 'bank': []}
 
 @log_execution_time
 async def fetch_binance_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
-    symbols = [Symbol(asset_left='USDT', asset_right='AZN')]
-    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+    tokens = ["USDT"]  # , "USDC"
+    fiats = ["KZT", "TJS", "AZN", "ARS"]
+    symbols = [Symbol(asset_left=t, asset_right=f) for t in tokens for f in fiats]
     stock_market.symbols = []
-    stock_market.symbols = symbols + rev_symbols
+    stock_market.symbols = symbols
     return symbols
 
 @log_execution_time
 async def fetch_binance_p2p_rates(market: StockMarket) -> list[SMCourse]:
-    async with httpx.AsyncClient() as client:
-        coros = [compute_pair_avg_binance(client, market, symbol) for symbol in market.symbols]
-        results = await asyncio.gather(*coros, return_exceptions=True)
-    print(results)
+    coros = [compute_pair_avg(market, symbol) for symbol in market.symbols]
+    results = await asyncio.gather(*coros, return_exceptions=True)
+    filtered: list[dict] = []
+    for res in results:
+        if isinstance(res, Exception):
+            logger.warning(f"Error fetching {market.name} P2P data: {res}")
+            continue
+        filtered.append(res)
     return await process_market_data(
         market,
-        results,
+        filtered,
         extract_symbol=lambda item: item['symbol'],
         extract_price=lambda item: item['price'],
         p2p=True
     )
 
-logger = logging.getLogger(settings.title)
-
-# Пары токен/фиат
-TOKENS = ["USDT", "USDC"]
-FIATS = ["RUB", "UZS", "KZT", "TJS", "AZN"]
-
-# Окна усреднения (по умолчанию — 1–5 объявлений)
-WINDOW_CONFIG = {
-    "USDTRUB": {"BUY": (1, 5), "SELL": (1, 5)},
-    # можно добавить кастомные окна под другие пары
-}
-DEFAULT_WINDOW = (1, 5)
-
-# Заголовки, которые требует Binance P2P API
 HEADERS = {
-    "User-Agent": "Mozilla/5.0",
+    "User-Agent": "stockmarketinfo/1.0",
     "Content-Type": "application/json",
+    "Accept": "application/json"
 }
 
-# Ограничение параллельных запросов
-SEM = asyncio.Semaphore(10)
-
-# Энпоинт официального P2P-API Binance
-BINANCE_P2P_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
-
-
-async def fetch_ads_binance(client: httpx.AsyncClient, market: StockMarket, symbol: Symbol, side: str, rows: int = 5) -> list[float]:
-    """
-    Собирает цены первых `rows` объявлений Binance P2P для пары token/fiat и направления BUY/SELL.
-    side: "BUY" (мы покупаем у P2P‑продавцов) или "SELL" (мы продаём P2P‑покупателям).
-    """
+async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 20, min_amount: float = .0, verify: bool = True, bank: list = None) -> list[float]:
     payload = {
         "asset": symbol.asset_left.asset,
         "fiat": symbol.asset_right.asset,
         "tradeType": side,
         "page": 1,
         "rows": rows,
+        "merchantCheck": verify,
+        "proMerchantAds": False,
+        "transAmount": str(min_amount),
     }
-    async with SEM:
-        data = await fetch_data(
-            url=market.rates_url.unicode_string(),
-            json=payload,
-            headers=HEADERS
-        )
+    if bank:
+        payload['payTypes'] = bank
+    data = await fetch_data(market.rates_url.unicode_string(), json=payload, headers=HEADERS, method="POST")
     items = data.get("data", [])
     prices = []
     for adv_wrapper in items:
@@ -86,8 +72,6 @@ async def fetch_ads_binance(client: httpx.AsyncClient, market: StockMarket, symb
         except (KeyError, TypeError, ValueError):
             continue
     match side:
-        # Для BUY — минимальные объявления (сортируем по возрастанию и берём первые),
-        # для SELL — максимальные (по убыванию)
         case "BUY":
             return sorted(prices)[:rows]
         case "SELL":
@@ -96,18 +80,16 @@ async def fetch_ads_binance(client: httpx.AsyncClient, market: StockMarket, symb
             return []
 
 
-async def compute_pair_avg_binance(client: httpx.AsyncClient, market: StockMarket, symbol: Symbol) -> dict:
-    """
-    Возвращает ключ "USDT/RUB" и словарь {"BUY": avg_buy, "SELL": avg_sell}
-    """
-    window = WINDOW_CONFIG.get(symbol.symbol, {"BUY": DEFAULT_WINDOW, "SELL": DEFAULT_WINDOW})
+async def compute_pair_avg(market: StockMarket, symbol: Symbol) -> dict[str, tuple[float, float]]:
+    window = WINDOW_CONFIG.get(symbol.symbol, {'BUY': DEFAULT_WINDOW, 'SELL': DEFAULT_WINDOW})
     buy_list, sell_list = await asyncio.gather(
-        fetch_ads_binance(client, market, symbol, side="BUY", rows=window["BUY"][1]),
-        fetch_ads_binance(client, market, symbol, side="SELL", rows=window["SELL"][1]),
+        fetch_ads(market, symbol, "BUY", min_amount=window['BUY']['min_amount'], verify=window['BUY']['verify'], bank=window['BUY']['bank']),
+        fetch_ads(market, symbol, "SELL", min_amount=window['SELL']['min_amount'], verify=window['SELL']['verify'], bank=window['SELL']['bank'])
     )
 
-    def avg(prices: list[float], start: int, end: int) -> float | None:
-        sub = prices[start-1 : end]
-        return sum(sub) / len(sub) if sub else 0.0
-    return {"symbol": symbol.symbol, "price": (avg(buy_list, *window['BUY']), avg(sell_list, *window['SELL']))}
+    def avg(prices: list[float], start: int, end: int) -> float:
+        sub = prices[start-1:end]
+        return sum(sub) / len(sub) if sub else .0
+    return {"symbol": symbol.symbol, "price": (avg(buy_list, window['BUY']['start'], window['BUY']['end']),
+                                               avg(sell_list, window['SELL']['start'], window['SELL']['end']))}
 
