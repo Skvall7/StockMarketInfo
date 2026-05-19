@@ -83,9 +83,9 @@ class Settings(BaseSettings):
     )
 
     wmg: StockMarket = StockMarket(
-        name='WMGlobus',
-        info_url='https://wmglobus.com/',
-        rates_url='https://wmglobus.com/',
+        name='SelfCourse',
+        info_url='https://selfcourse.com/',
+        rates_url='https://selfcourse.com/',
         requests_sleep=60,
         requests_per_day=86400,
     )

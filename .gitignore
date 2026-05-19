@@ -244,7 +244,7 @@ fabric.properties
 !/important/.env.devolopment
 !/important/.env.production
 !/important/.env.testing
-!/important/.env
+/important/.env
 
 /temp/
 /var/
