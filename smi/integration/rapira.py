@@ -1,3 +1,9 @@
+"""Интеграция Rapira.
+
+Получает exchangeable-пары через `/open/market/pairs`, курсы через `/open/market/rates`.
+Обычный спотовый источник: обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_rapira_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает торгуемые пары Rapira и сохраняет прямые/обратные символы."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data:
         logger.warning(f"Error data: {data}")
@@ -26,6 +33,7 @@ async def fetch_rapira_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_rapira_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает рыночные курсы Rapira и возвращает `list[SMCourse]`."""
     data = await fetch_data(stock_market.rates_url.unicode_string())
     if not data or not data['data']:
         logger.warning(f"Error data: {data}")

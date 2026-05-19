@@ -12,6 +12,7 @@ from smi.integration.bybit import fetch_bybit_symbols, fetch_bybit_rates
 from smi.integration.bybit_p2p import fetch_bybit_p2p_rates, fetch_bybit_p2p_symbols
 from smi.integration.cbr import fetch_cbr_symbols, fetch_cbr_rates
 from smi.integration.garantex import fetch_garantex_symbols, fetch_garantex_rates
+from smi.integration.goatx import fetch_goatx_symbols, fetch_goatx_rates
 from smi.integration.htx import fetch_htx_symbols, fetch_htx_rates
 from smi.integration.payeer import fetch_payeer_symbols, fetch_payeer_rates
 from smi.integration.rapira import fetch_rapira_symbols, fetch_rapira_rates
@@ -51,6 +52,7 @@ async def fetch_all_symbols() -> list[Symbol]:
         # fetch_htx_symbols(settings.htx),
         # fetch_cbr_symbols(settings.cbr),
         # fetch_wmg_symbols(settings.wmg),
+        fetch_goatx_symbols(settings.goatx),
         # fetch_bybit_symbols(settings.bybit),
         fetch_bybit_p2p_symbols(settings.bybit_p2p),
         fetch_rapira_symbols(settings.rapira),
@@ -70,6 +72,7 @@ async def lifespan(app: FastAPI):
         # asyncio.create_task(update_course(settings.htx, fetch_htx_rates)),
         # asyncio.create_task(update_course(settings.cbr, fetch_cbr_rates)),
         # asyncio.create_task(update_course(settings.wmg, fetch_wmg_rates)),
+        asyncio.create_task(update_course(settings.goatx, fetch_goatx_rates)),
         # asyncio.create_task(update_course(settings.bybit, fetch_bybit_rates)),
         asyncio.create_task(update_course(settings.bybit_p2p, fetch_bybit_p2p_rates)),
         asyncio.create_task(update_course(settings.rapira, fetch_rapira_rates)),

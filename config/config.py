@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     environment: str = 'production'
 
     # Основные параметры приложения
-    version: str = '0.1.0'
+    version: str = '0.2.0'
     title: str = 'Stock market info service'
     description: str = 'Stock market info service - collects information about cryptocurrency exchange rates from exchanges, as well as information about tokens'
 
@@ -77,6 +77,14 @@ class Settings(BaseSettings):
         name='WMGlobus',
         info_url='https://wmglobus.com/',
         rates_url='https://wmglobus.com/',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
+
+    goatx: StockMarket = StockMarket(
+        name='GoatX',
+        info_url='https://goatx.me/',
+        rates_url='https://goatx.me/',
         requests_sleep=60,
         requests_per_day=86400,
     )

@@ -18,6 +18,7 @@ def get_markets():
         settings.htx,
         settings.cbr,
         settings.wmg,
+        settings.goatx,
         settings.bybit,
         settings.bybit_p2p,
         settings.rapira,

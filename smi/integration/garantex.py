@@ -1,3 +1,9 @@
+"""Интеграция Garantex.
+
+Получает список рынков из `/markets`, а курс каждой пары берет отдельным запросом
+к `/trades?market=...&limit=1`. Обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_garantex_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает рынки Garantex и сохраняет прямые и обратные символы."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data or not data[0]['ask_unit']:
         logger.warning(f"Error data: {data}")
@@ -22,6 +29,7 @@ async def fetch_garantex_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_garantex_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Последовательно получает последний trade price по каждому символу Garantex."""
     all_data = []
     for symbol in stock_market.symbols:
         market = symbol.symbol.lower()

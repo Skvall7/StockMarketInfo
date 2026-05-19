@@ -1,3 +1,9 @@
+"""Интеграция ЦБ РФ.
+
+Берет ежедневный JSON ЦБ РФ, строит пары валют к RUB и нормализует курс по `Nominal`.
+Обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_cbr_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает валюты ЦБ РФ как пары `<код>RUB` и сохраняет обратные символы."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data or not data['Valute']:
         logger.warning(f"Error data: {data}")
@@ -22,6 +29,7 @@ async def fetch_cbr_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_cbr_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает курсы ЦБ РФ и возвращает `list[SMCourse]` с учетом `Nominal`."""
     data = await fetch_data(stock_market.rates_url.unicode_string())
     if not data or not data['Valute']:
         logger.warning(f"Error data: {data}")

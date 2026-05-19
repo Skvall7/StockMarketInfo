@@ -1,3 +1,9 @@
+"""Интеграция Binance Spot.
+
+Получает торгуемые пары через `exchangeInfo`, курсы через `ticker/price`.
+Обычный спотовый источник: обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_binance_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает торгуемые spot-пары Binance и сохраняет их в `stock_market.symbols`."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data or not data['symbols']:
         logger.warning(f"Error data: {data}")
@@ -26,6 +33,7 @@ async def fetch_binance_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_binance_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает цены Binance и возвращает `list[SMCourse]` через общий обработчик."""
     data = await fetch_data(stock_market.rates_url.unicode_string())
     if not data or not data[0]['price']:
         logger.warning(f"Error data: {data}")

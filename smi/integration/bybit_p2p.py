@@ -1,3 +1,10 @@
+"""Интеграция Bybit P2P.
+
+Пары задаются вручную, потому что P2P не является обычным spot-источником.
+Для каждой пары считаются средние BUY/SELL по `WINDOW_CONFIG` или `DEFAULT_WINDOW`,
+затем результат передается в `process_market_data(..., p2p=True)`.
+"""
+
 import logging
 import asyncio
 
@@ -26,6 +33,7 @@ HEADERS = {
 
 @log_execution_time
 async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Создает поддерживаемые P2P-пары Bybit и сохраняет прямые/обратные символы."""
     # Нужно найти решение как получать список токенов и фиаты
     tokens = ["USDT"]   # , "USDC"
     fiats = ["RUB", "KZT", "AZN", "TJS", "ARS"]
@@ -37,6 +45,7 @@ async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 50, min_amount: Optional[float] = .0,
                     merchant_only: bool = True,) -> list[float]:
+    """Возвращает отсортированные цены объявлений Bybit P2P для одной стороны сделки."""
     # TODO требуется до адоптировать p2p, в частности запросы
     prices: list[float] = []
     payload = {"tokenId": symbol.asset_left.asset, "currencyId": symbol.asset_right.asset, "side": side, "page": '1', "size": str(rows)}
@@ -55,6 +64,7 @@ async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 
     return sorted(prices) if side == "1" else sorted(prices, reverse=True)
 
 async def compute_pair_avg(market: StockMarket, symbol: Symbol ) -> dict[str, tuple[float, float]]:
+    """Считает средние BUY/SELL по окну пары или родительскому `DEFAULT_WINDOW`."""
     window = WINDOW_CONFIG.get(symbol.symbol, {'BUY': DEFAULT_WINDOW, 'SELL': DEFAULT_WINDOW})
     buy_list, sell_list = await asyncio.gather(fetch_ads(market, symbol, "1", min_amount=window['BUY']['min_amount'], merchant_only=window['BUY']['verify']),
                                                fetch_ads(market, symbol, "0", min_amount=window['SELL']['min_amount'], merchant_only=window['SELL']['verify']))
@@ -67,6 +77,7 @@ async def compute_pair_avg(market: StockMarket, symbol: Symbol ) -> dict[str, tu
 
 @log_execution_time
 async def fetch_bybit_p2p_rates(market: StockMarket) -> list[SMCourse]:
+    """Параллельно считает средние P2P-цены и возвращает `list[SMCourse]`."""
     coros = [compute_pair_avg(market, symbol) for symbol in market.symbols]
     results = await asyncio.gather(*coros, return_exceptions=True)
     filtered: list[dict] = []

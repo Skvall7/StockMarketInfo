@@ -1,3 +1,9 @@
+"""Интеграция Payeer.
+
+Получает пары и tickers из Payeer Trade API; пары API приходят в формате `BASE_QUOTE`.
+Обычный спотовый источник: обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_payeer_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает пары Payeer, нормализует `_` и сохраняет прямые/обратные символы."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data or not data['pairs']:
         return []
@@ -21,6 +28,7 @@ async def fetch_payeer_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_payeer_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает tickers Payeer и возвращает `list[SMCourse]` через общий обработчик."""
     data = await fetch_data(stock_market.rates_url.unicode_string())
     if not data or not data['pairs']:
         logger.warning(f"Error data: {data}")

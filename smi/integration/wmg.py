@@ -1,3 +1,9 @@
+"""Интеграция WMGlobus.
+
+Текущая реализация не ходит во внешний API и отдает фиксированную пару USDT/USD = 1.
+Обратный курс формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_wmg_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Создает статический список символов WMGlobus и сохраняет обратную пару."""
     symbols = [Symbol(asset_left='USDT', asset_right='USD')]
     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
@@ -18,6 +25,7 @@ async def fetch_wmg_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_wmg_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Возвращает фиксированный курс USDT/USD через общий обработчик."""
     return await process_market_data(
         stock_market,
         [{'symbol': 'USDTUSD', 'value': 1}],

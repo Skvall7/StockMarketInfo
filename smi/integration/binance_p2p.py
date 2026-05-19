@@ -1,3 +1,10 @@
+"""Интеграция Binance P2P.
+
+Пары задаются вручную, потому что P2P не является обычным spot-источником.
+Для каждой пары считаются средние BUY/SELL по `WINDOW_CONFIG` или `DEFAULT_WINDOW`,
+затем результат передается в `process_market_data(..., p2p=True)`.
+"""
+
 import asyncio
 import logging
 
@@ -18,6 +25,7 @@ DEFAULT_WINDOW = {'start': 1, 'end': 5, 'min_amount': 0, 'verify': True, 'bank':
 
 @log_execution_time
 async def fetch_binance_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Создает поддерживаемые P2P-пары Binance и сохраняет их в `stock_market.symbols`."""
     tokens = ["USDT"]  # , "USDC"
     fiats = ["KZT", "TJS", "AZN", "ARS"]
     symbols = [Symbol(asset_left=t, asset_right=f) for t in tokens for f in fiats]
@@ -27,6 +35,7 @@ async def fetch_binance_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_binance_p2p_rates(market: StockMarket) -> list[SMCourse]:
+    """Параллельно считает средние P2P-цены и возвращает `list[SMCourse]`."""
     coros = [compute_pair_avg(market, symbol) for symbol in market.symbols]
     results = await asyncio.gather(*coros, return_exceptions=True)
     filtered: list[dict] = []
@@ -50,6 +59,7 @@ HEADERS = {
 }
 
 async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 20, min_amount: float = .0, verify: bool = True, bank: list = None) -> list[float]:
+    """Возвращает отсортированные цены объявлений Binance P2P для одной стороны сделки."""
     payload = {
         "asset": symbol.asset_left.asset,
         "fiat": symbol.asset_right.asset,
@@ -81,6 +91,7 @@ async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 
 
 
 async def compute_pair_avg(market: StockMarket, symbol: Symbol) -> dict[str, tuple[float, float]]:
+    """Считает средние BUY/SELL по окну пары или родительскому `DEFAULT_WINDOW`."""
     window = WINDOW_CONFIG.get(symbol.symbol, {'BUY': DEFAULT_WINDOW, 'SELL': DEFAULT_WINDOW})
     buy_list, sell_list = await asyncio.gather(
         fetch_ads(market, symbol, "BUY", min_amount=window['BUY']['min_amount'], verify=window['BUY']['verify'], bank=window['BUY']['bank']),
@@ -92,4 +103,3 @@ async def compute_pair_avg(market: StockMarket, symbol: Symbol) -> dict[str, tup
         return sum(sub) / len(sub) if sub else .0
     return {"symbol": symbol.symbol, "price": (avg(buy_list, window['BUY']['start'], window['BUY']['end']),
                                                avg(sell_list, window['SELL']['start'], window['SELL']['end']))}
-

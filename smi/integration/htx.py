@@ -1,3 +1,9 @@
+"""Интеграция HTX Spot.
+
+Получает online-символы через настройки HTX, курсы через общий список tickers.
+Обычный спотовый источник: обратные курсы формирует `process_market_data`.
+"""
+
 import logging
 
 from config.app import log_execution_time
@@ -10,6 +16,7 @@ logger = logging.getLogger(settings.title)
 
 @log_execution_time
 async def fetch_htx_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает online-пары HTX и сохраняет их в `stock_market.symbols`."""
     data = await fetch_data(stock_market.info_url.unicode_string())
     if not data or not data['data']:
         logger.warning(f"Error data: {data}")
@@ -26,6 +33,7 @@ async def fetch_htx_symbols(stock_market: StockMarket) -> list[Symbol]:
 
 @log_execution_time
 async def fetch_htx_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает tickers HTX и возвращает `list[SMCourse]` через общий обработчик."""
     data = await fetch_data(stock_market.rates_url.unicode_string())
     if not data or not data['data']:
         logger.warning(f"Error data: {data}")
