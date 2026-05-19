@@ -1,0 +1,13 @@
+.git/
+.github/
+.idea/
+.opencode/
+.pytest_cache/
+.venv/
+__pycache__/
+*.py[cod]
+AGENTS.md
+CLAUDE.md
+var/
+temp/
+test_main.http
