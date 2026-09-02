@@ -19,10 +19,11 @@ logger = logging.getLogger(settings.title)
 
 # Параметры окон усреднения: можно добавить индивидуальные
 WINDOW_CONFIG = {
-    "USDTRUB": {'BUY': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True}, 'SELL': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True}},
-    "USDTAZN": {'BUY': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True}, 'SELL': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True}},
+    "USDTRUB": {'BUY': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True, 'payment': []}, 'SELL': {'start': 3, 'end': 5, 'min_amount': 0, 'verify': True, 'payment': []}},
+    "USDTAZN": {'BUY': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True, 'payment': []}, 'SELL': {'start': 1, 'end': 10, 'min_amount': 2000, 'verify': True, 'payment': []}},
+    "USDTEGP": {'BUY': {'start': 5, 'end': 7, 'min_amount': 1000, 'verify': False, 'payment': ['169']}, 'SELL': {'start': 5, 'end': 7, 'min_amount': 1000, 'verify': False, 'payment': ['169']}},
 }
-DEFAULT_WINDOW = {'start': 2, 'end': 4, 'min_amount': 0, 'verify': True}
+DEFAULT_WINDOW = {'start': 2, 'end': 4, 'min_amount': 0, 'verify': True, 'payment': []}
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
@@ -36,7 +37,7 @@ async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
     """Создает поддерживаемые P2P-пары Bybit и сохраняет прямые/обратные символы."""
     # Нужно найти решение как получать список токенов и фиаты
     tokens = ["USDT"]   # , "USDC"
-    fiats = ["RUB", "KZT", "AZN", "TJS", "ARS"]
+    fiats = ["RUB", "KZT", "AZN", "TJS", "ARS", "EGP"]
     symbols = [Symbol(asset_left=t, asset_right=f) for t in tokens for f in fiats]
     rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
     stock_market.symbols = []
@@ -44,13 +45,15 @@ async def fetch_bybit_p2p_symbols(stock_market: StockMarket) -> list[Symbol]:
     return symbols
 
 async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 50, min_amount: Optional[float] = .0,
-                    merchant_only: bool = True,) -> list[float]:
+                    merchant_only: bool = True, payment: Optional[list[str]] = None) -> list[float]:
     """Возвращает отсортированные цены объявлений Bybit P2P для одной стороны сделки."""
     # TODO требуется до адоптировать p2p, в частности запросы
     prices: list[float] = []
     payload = {"tokenId": symbol.asset_left.asset, "currencyId": symbol.asset_right.asset, "side": side, "page": '1', "size": str(rows)}
     if min_amount > 0:
         payload["amount"] = str(min_amount)
+    if payment:
+        payload["payment"] = payment
     data = await fetch_data(market.rates_url.unicode_string(), json=payload, headers=HEADERS, method="POST")
     items = data.get("result", {}).get("items", []) or []
     for item in items:
@@ -66,8 +69,8 @@ async def fetch_ads(market: StockMarket, symbol: Symbol, side: str, rows: int = 
 async def compute_pair_avg(market: StockMarket, symbol: Symbol ) -> dict[str, tuple[float, float]]:
     """Считает средние BUY/SELL по окну пары или родительскому `DEFAULT_WINDOW`."""
     window = WINDOW_CONFIG.get(symbol.symbol, {'BUY': DEFAULT_WINDOW, 'SELL': DEFAULT_WINDOW})
-    buy_list, sell_list = await asyncio.gather(fetch_ads(market, symbol, "1", min_amount=window['BUY']['min_amount'], merchant_only=window['BUY']['verify']),
-                                               fetch_ads(market, symbol, "0", min_amount=window['SELL']['min_amount'], merchant_only=window['SELL']['verify']))
+    buy_list, sell_list = await asyncio.gather(fetch_ads(market, symbol, "1", min_amount=window['BUY']['min_amount'], merchant_only=window['BUY']['verify'], payment=window['BUY']['payment']),
+                                               fetch_ads(market, symbol, "0", min_amount=window['SELL']['min_amount'], merchant_only=window['SELL']['verify'], payment=window['SELL']['payment']))
 
     def avg(prices: list[float], start: int, end: int) -> float:
         sub = prices[start-1:end]

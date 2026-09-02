@@ -18,9 +18,10 @@ def test_bybit_p2p_symbols_include_reverse_pairs(run_async, market_factory):
 
     symbols = run_async(bybit_p2p.fetch_bybit_p2p_symbols(market))
 
-    assert {symbol.symbol for symbol in symbols} == {"USDTRUB", "USDTKZT", "USDTAZN", "USDTTJS", "USDTARS"}
+    assert {symbol.symbol for symbol in symbols} == {"USDTRUB", "USDTKZT", "USDTAZN", "USDTTJS", "USDTARS", "USDTEGP"}
     assert "AZNUSDT" in {symbol.symbol for symbol in market.symbols}
     assert "USDTAZN" in {symbol.symbol for symbol in market.symbols}
+    assert "EGPUSDT" in {symbol.symbol for symbol in market.symbols}
 
 
 P2P_RATE_CASES = [
@@ -38,7 +39,7 @@ P2P_RATE_CASES = [
         bybit_p2p.fetch_bybit_p2p_rates,
         "1",
         "0",
-        {"min_amount": 0, "merchant_only": True},
+        {"min_amount": 0, "merchant_only": True, "payment": []},
     ),
 ]
 
@@ -136,9 +137,32 @@ def test_bybit_p2p_fetch_ads_filters_verified_merchants(monkeypatch, run_async, 
     market = market_factory("bybit_p2p")
     symbol = Symbol(asset_left="USDT", asset_right="KZT")
 
-    prices = run_async(bybit_p2p.fetch_ads(market, symbol, "1"))
+    prices = run_async(bybit_p2p.fetch_ads(market, symbol, "1", min_amount=1000, payment=["169"]))
 
     assert prices == [10.0]
     assert captured_payloads[0]["tokenId"] == "USDT"
     assert captured_payloads[0]["currencyId"] == "KZT"
     assert captured_payloads[0]["side"] == "1"
+    assert captured_payloads[0]["amount"] == "1000"
+    assert captured_payloads[0]["payment"] == ["169"]
+
+
+def test_bybit_p2p_egp_uses_vodafone_cash_window(monkeypatch, run_async, market_factory):
+    seen_calls = []
+
+    async def fake_fetch_ads(market_arg, symbol_arg, side, *args, **kwargs):
+        seen_calls.append((side, kwargs))
+        if side == "1":
+            return [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+        return [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0]
+
+    monkeypatch.setattr(bybit_p2p, "fetch_ads", fake_fetch_ads)
+    market = market_factory("bybit_p2p")
+    symbol = Symbol(asset_left="USDT", asset_right="EGP")
+
+    result = run_async(bybit_p2p.compute_pair_avg(market, symbol))
+
+    assert result == {"symbol": "USDTEGP", "price": (6.0, 5.0)}
+    assert [side for side, _ in seen_calls] == ["1", "0"]
+    for _, kwargs in seen_calls:
+        assert kwargs == {"min_amount": 1000, "merchant_only": True, "payment": ["169"]}
