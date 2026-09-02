@@ -15,10 +15,9 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Копируем исходный код проекта
+# Копируем исходный код проекта; логи исключены из build context через .dockerignore
 COPY . /app/
 
-RUN mkdir -p /app/var/logs
 RUN mkdir -p /app/var/logs && chmod -R 777 /app/var/logs
 
 
@@ -26,8 +25,10 @@ RUN mkdir -p /app/var/logs && chmod -R 777 /app/var/logs
 ENV PYTHONUNBUFFERED=1
 
 # Открываем порт, на котором будет работать приложение
-# 8080 - порт для документации
 EXPOSE 9000
 
-# Команда для запуска приложения через FastStream
+# Логи приложения пишутся в /app/var/logs/smi.log
+VOLUME ["/app/var/logs"]
+
+# Команда для запуска приложения через uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000"]

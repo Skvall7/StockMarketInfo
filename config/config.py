@@ -1,4 +1,6 @@
 import logging
+from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,7 +15,7 @@ class Settings(BaseSettings):
     environment: str = 'production'
 
     # Основные параметры приложения
-    version: str = '0.1.0'
+    version: str = '0.2.0'
     title: str = 'Stock market info service'
     description: str = 'Stock market info service - collects information about cryptocurrency exchange rates from exchanges, as well as information about tokens'
 
@@ -22,11 +24,18 @@ class Settings(BaseSettings):
     log_file: str = 'var/logs/smi.log'
 
     def configure_logging(self):
+        Path(self.log_file).parent.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
             level=self.log_level,
             format=f'%(asctime)s %(levelname)s {self.title} - %(message)s',
             handlers=[
-                logging.FileHandler(self.log_file),
+                TimedRotatingFileHandler(
+                    self.log_file,
+                    when='D',
+                    interval=1,
+                    backupCount=1,
+                    encoding='utf-8',
+                ),
                 logging.StreamHandler()
             ]
         )
@@ -79,6 +88,47 @@ class Settings(BaseSettings):
         rates_url='https://selfcourse.com/',
         requests_sleep=60,
         requests_per_day=86400,
+    )
+
+    goatx: StockMarket = StockMarket(
+        name='GoatX',
+        info_url='https://goatx.me/',
+        rates_url='https://goatx.me/',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
+
+    bybit: StockMarket = StockMarket(
+        name='Bybit',
+        info_url='https://api.bybit.com/v5/market/instruments-info?category=spot',
+        rates_url='https://api.bybit.com/v5/market/tickers?category=spot',
+        requests_sleep=60,
+        requests_per_day=86400,
+    )
+
+    bybit_p2p: StockMarket = StockMarket(
+        name='Bybit_p2p',
+        info_url='https://api2.bybit.com/fiat/otc/item/online',
+        rates_url='https://api2.bybit.com/fiat/otc/item/online',
+        requests_sleep=60,
+        requests_per_day=1440,
+    )
+
+    # https://rapira.readme.io/reference/intro
+    rapira: StockMarket = StockMarket(
+        name='Rapira',
+        info_url='https://api.rapira.net/open/market/pairs',
+        rates_url='https://api.rapira.net/open/market/rates',
+        requests_sleep=60,
+        requests_per_day=144000,
+    )
+
+    binance_p2p: StockMarket = StockMarket(
+        name='Binance_p2p',
+        info_url='https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',
+        rates_url='https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',
+        requests_sleep=60,
+        requests_per_day=1440,
     )
 
 

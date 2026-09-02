@@ -1,0 +1,43 @@
+"""Интеграция ЦБ РФ.
+
+Берет ежедневный JSON ЦБ РФ, строит пары валют к RUB и нормализует курс по `Nominal`.
+Обратные курсы формирует `process_market_data`.
+"""
+
+import logging
+
+from config.app import log_execution_time
+from config.config import settings
+from smi.parser import fetch_data, process_market_data
+from smi.schemas import StockMarket, SMCourse, Symbol
+
+logger = logging.getLogger(settings.title)
+
+
+@log_execution_time
+async def fetch_cbr_symbols(stock_market: StockMarket) -> list[Symbol]:
+    """Загружает валюты ЦБ РФ как пары `<код>RUB` и сохраняет обратные символы."""
+    data = await fetch_data(stock_market.info_url.unicode_string())
+    if not data or not data['Valute']:
+        logger.warning(f"Error data: {data}")
+        return []
+    symbols = [Symbol(asset_left=code, asset_right='RUB')for code, currency_data in data["Valute"].items()]
+    rev_symbols = [Symbol(asset_left=symbol.asset_right, asset_right=symbol.asset_left) for symbol in symbols]
+    stock_market.symbols = []
+    stock_market.symbols = symbols + rev_symbols
+    return symbols
+
+@log_execution_time
+async def fetch_cbr_rates(stock_market: StockMarket) -> list[SMCourse]:
+    """Загружает курсы ЦБ РФ и возвращает `list[SMCourse]` с учетом `Nominal`."""
+    data = await fetch_data(stock_market.rates_url.unicode_string())
+    if not data or not data['Valute']:
+        logger.warning(f"Error data: {data}")
+        return []
+    pairs_data = [{'symbol': f'{key}RUB', 'value': float(value['Value']) / float(value['Nominal'])} for key, value in data['Valute'].items()]
+    return await process_market_data(
+        stock_market,
+        pairs_data,
+        extract_symbol=lambda item: item['symbol'].upper(),
+        extract_price=lambda item: float(item['value'])
+    )
