@@ -165,4 +165,4 @@ def test_bybit_p2p_egp_uses_vodafone_cash_window(monkeypatch, run_async, market_
     assert result == {"symbol": "USDTEGP", "price": (6.0, 5.0)}
     assert [side for side, _ in seen_calls] == ["1", "0"]
     for _, kwargs in seen_calls:
-        assert kwargs == {"min_amount": 1000, "merchant_only": True, "payment": ["169"]}
+        assert kwargs == {"min_amount": 1000, "merchant_only": False, "payment": ["169"]}
