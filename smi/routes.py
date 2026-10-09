@@ -22,6 +22,7 @@ def get_markets():
         settings.bybit,
         settings.bybit_p2p,
         settings.rapira,
+        settings.abcex,
     ]
 
 

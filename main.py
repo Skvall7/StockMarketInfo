@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from config.app import log_execution_time
 from config.config import settings, all_rates
+from smi.integration.abcex import fetch_abcex_symbols, fetch_abcex_rates
 from smi.integration.binance import fetch_binance_symbols, fetch_binance_rates
 from smi.integration.binance_p2p import fetch_binance_p2p_symbols, fetch_binance_p2p_rates
 from smi.integration.bybit import fetch_bybit_symbols, fetch_bybit_rates
@@ -57,6 +58,7 @@ async def fetch_all_symbols() -> list[Symbol]:
         fetch_bybit_p2p_symbols(settings.bybit_p2p),
         fetch_rapira_symbols(settings.rapira),
         fetch_binance_p2p_symbols(settings.binance_p2p),
+        fetch_abcex_symbols(settings.abcex),
     ]
     results = await asyncio.gather(*fetch_tasks)
     symbol_set = {symbol.symbol: symbol for symbol_list in results for symbol in symbol_list}
@@ -77,6 +79,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(update_course(settings.bybit_p2p, fetch_bybit_p2p_rates)),
         asyncio.create_task(update_course(settings.rapira, fetch_rapira_rates)),
         asyncio.create_task(update_course(settings.binance_p2p, fetch_binance_p2p_rates)),
+        asyncio.create_task(update_course(settings.abcex, fetch_abcex_rates)),
     ]
     yield  # Запуск приложения
 

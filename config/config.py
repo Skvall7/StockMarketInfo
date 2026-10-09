@@ -2,6 +2,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
+from pydantic import HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from smi.schemas import StockMarket
@@ -130,6 +131,15 @@ class Settings(BaseSettings):
         requests_sleep=60,
         requests_per_day=1440,
     )
+
+    abcex: StockMarket = StockMarket(
+        name='Abcex',
+        info_url='https://api.abcex.io/api/v2/exchange/public/asset/instrument/spot/list',
+        rates_url='https://api.abcex.io/api/v2/exchange/public/candle/spot/ticker/day',
+        requests_sleep=60,
+        requests_per_day=1728,  # Плановый бюджет: 1440 тикеров + 288 запросов справочников.
+    )
+    abcex_assets_url: HttpUrl = 'https://api.abcex.io/api/v2/exchange/public/asset/list'
 
 
 # Инициализация настроек
