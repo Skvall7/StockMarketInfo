@@ -17,7 +17,12 @@ def get_markets():
         settings.payeer,
         settings.htx,
         settings.cbr,
-        settings.wmg
+        settings.wmg,
+        settings.goatx,
+        settings.bybit,
+        settings.bybit_p2p,
+        settings.rapira,
+        settings.abcex,
     ]
 
 

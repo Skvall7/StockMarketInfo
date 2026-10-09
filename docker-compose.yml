@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     ports:
       - "9000:9000"
+    volumes:
+      - ./var/logs:/app/var/logs
     networks:
       - smi_network
 
